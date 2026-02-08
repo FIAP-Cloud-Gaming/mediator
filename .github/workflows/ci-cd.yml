@@ -2,9 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
   release:
     types: [ published ]
 
@@ -78,6 +76,9 @@ jobs:
     needs: pack
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      packages: write
+      contents: read
 
     steps:
     - name: Download artifacts

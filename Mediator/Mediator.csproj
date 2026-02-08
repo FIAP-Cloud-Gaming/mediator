@@ -12,8 +12,8 @@
 		<Product>FIAP Cloud Gaming Mediator</Product>
 		<Description>Lightweight mediator implementation for CQRS pattern with commands, queries and notifications. Built for .NET 10 microservices architecture.</Description>
 		<PackageTags>mediator;cqrs;commands;queries;notifications;domain-events;fiap</PackageTags>
-		<PackageProjectUrl>https://github.com/fiap-cloud-gaming/Mediator</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/fiap-cloud-gaming/Mediator</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/FIAP-Cloud-Gaming/Mediator</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/FIAP-Cloud-Gaming/Mediator</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 
