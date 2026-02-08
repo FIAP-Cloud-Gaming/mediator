@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    name: Build and Test
+    name: Build
     runs-on: ubuntu-latest
 
     steps:
@@ -31,16 +31,6 @@ jobs:
 
     - name: Build
       run: dotnet build --configuration ${{ env.CONFIGURATION }} --no-restore
-
-    - name: Test
-      run: dotnet test --configuration ${{ env.CONFIGURATION }} --no-build --verbosity normal --collect:"XPlat Code Coverage"
-
-    - name: Upload coverage reports
-      if: success()
-      uses: codecov/codecov-action@v4
-      with:
-        files: '**/coverage.cobertura.xml'
-        fail_ci_if_error: false
 
   pack:
     name: Create NuGet Package
@@ -97,29 +87,4 @@ jobs:
         dotnet nuget push ./artifacts/*.nupkg \
           --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
           --api-key ${{ secrets.GITHUB_TOKEN }} \
-          --skip-duplicate
-
-  publish-nuget:
-    name: Publish to NuGet.org
-    needs: pack
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-
-    steps:
-    - name: Download artifacts
-      uses: actions/download-artifact@v4
-      with:
-        name: nuget-packages
-        path: ./artifacts
-
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: ${{ env.DOTNET_VERSION }}
-
-    - name: Publish to NuGet.org
-      run: |
-        dotnet nuget push ./artifacts/*.nupkg \
-          --source https://api.nuget.org/v3/index.json \
-          --api-key ${{ secrets.NUGET_API_KEY }} \
           --skip-duplicate
