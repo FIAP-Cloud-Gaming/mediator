@@ -3,43 +3,43 @@
 [![NuGet](https://img.shields.io/nuget/v/FiapCloudGaming.Mediator.svg)](https://www.nuget.org/packages/FiapCloudGaming.Mediator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Lightweight mediator implementation for CQRS pattern with commands, queries and notifications. Built for .NET 10 microservices architecture.
+Implementacao leve do padrao Mediator para CQRS com commands, queries e notifications. Construido para arquitetura de microsservicos em .NET 10.
 
-## Features
+## Funcionalidades
 
-- ✅ **Commands** - Execute operations with validation and side effects
-- ✅ **Queries** - Retrieve data with separation of concerns
-- ✅ **Notifications** - Publish domain events to multiple handlers
-- ✅ **Pipeline Behaviors** - Cross-cutting concerns (logging, validation, etc.)
-- ✅ **Domain Events** - Built-in support for dispatching domain events
-- ✅ **Dependency Injection** - First-class integration with Microsoft.Extensions.DependencyInjection
-- ✅ **Lightweight** - Minimal dependencies, maximum performance
+- **Commands** - Executar operacoes com validacao e efeitos colaterais
+- **Queries** - Recuperar dados com separacao de responsabilidades
+- **Notifications** - Publicar eventos de dominio para multiplos handlers
+- **Pipeline Behaviors** - Preocupacoes transversais (logging, validacao, etc.)
+- **Eventos de Dominio** - Suporte nativo para despacho de eventos de dominio
+- **Injecao de Dependencia** - Integracao com Microsoft.Extensions.DependencyInjection
+- **Leve** - Dependencias minimas, performance maxima
 
-## Installation
+## Instalacao
 
 ```bash
 dotnet add package FiapCloudGaming.Mediator
 ```
 
-Or via NuGet Package Manager:
+Ou via NuGet Package Manager:
 
 ```powershell
 Install-Package FiapCloudGaming.Mediator
 ```
 
-## Quick Start
+## Inicio Rapido
 
-### 1. Register Mediator in DI Container
+### 1. Registrar o Mediator no Container de DI
 
 ```csharp
-// Program.cs or Startup.cs
+// Program.cs ou Startup.cs
 services.AddMediator(options =>
 {
     options.ServiceLifetime = ServiceLifetime.Scoped;
 });
 ```
 
-### 2. Define a Command
+### 2. Definir um Command
 
 ```csharp
 // Commands/CreateOrderCommand.cs
@@ -64,7 +64,7 @@ public class CreateOrderCommandHandler : ICommandHandler<CreateOrderCommand, Gui
 }
 ```
 
-### 3. Define a Query
+### 3. Definir uma Query
 
 ```csharp
 // Queries/GetOrderQuery.cs
@@ -88,7 +88,7 @@ public class GetOrderQueryHandler : IQueryHandler<GetOrderQuery, OrderDto>
 }
 ```
 
-### 4. Define a Notification (Domain Event)
+### 4. Definir uma Notification (Evento de Dominio)
 
 ```csharp
 // Events/OrderCreatedEvent.cs
@@ -110,7 +110,7 @@ public class SendEmailHandler : INotificationHandler<OrderCreatedEvent>
     }
 }
 
-// You can have multiple handlers for the same notification
+// Voce pode ter multiplos handlers para a mesma notification
 public class LogOrderHandler : INotificationHandler<OrderCreatedEvent>
 {
     private readonly ILogger<LogOrderHandler> _logger;
@@ -122,14 +122,14 @@ public class LogOrderHandler : INotificationHandler<OrderCreatedEvent>
 
     public async Task Handle(OrderCreatedEvent notification, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Order {OrderId} created for user {UserId}",
+        _logger.LogInformation("Pedido {OrderId} criado para o usuario {UserId}",
             notification.OrderId, notification.UserId);
         await Task.CompletedTask;
     }
 }
 ```
 
-### 5. Use Mediator
+### 5. Usar o Mediator
 
 ```csharp
 public class OrdersController : ControllerBase
@@ -144,11 +144,11 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
     {
-        // Send Command
+        // Enviar Command
         var command = new CreateOrderCommand(request.UserId, request.Amount);
         var orderId = await _mediator.Send(command);
 
-        // Publish Notification (Domain Event)
+        // Publicar Notification (Evento de Dominio)
         await _mediator.Publish(new OrderCreatedEvent(orderId, request.UserId));
 
         return CreatedAtAction(nameof(GetOrder), new { id = orderId }, orderId);
@@ -157,7 +157,7 @@ public class OrdersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetOrder(Guid id)
     {
-        // Send Query
+        // Enviar Query
         var query = new GetOrderQuery(id);
         var order = await _mediator.Send(query);
 
@@ -166,11 +166,11 @@ public class OrdersController : ControllerBase
 }
 ```
 
-## Advanced Features
+## Funcionalidades Avancadas
 
 ### Pipeline Behaviors
 
-Add cross-cutting concerns like logging, validation, or performance monitoring:
+Adicione preocupacoes transversais como logging, validacao ou monitoramento de performance:
 
 ```csharp
 public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
@@ -188,18 +188,18 @@ public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, 
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Handling {RequestName}", typeof(TRequest).Name);
+        _logger.LogInformation("Processando {RequestName}", typeof(TRequest).Name);
         var response = await next();
-        _logger.LogInformation("Handled {RequestName}", typeof(TRequest).Name);
+        _logger.LogInformation("Processado {RequestName}", typeof(TRequest).Name);
         return response;
     }
 }
 
-// Register in DI
+// Registrar no DI
 services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 ```
 
-### Domain Events with NotificationEntity
+### Eventos de Dominio com NotificationEntity
 
 ```csharp
 public class Order : NotificationEntity
@@ -214,15 +214,15 @@ public class Order : NotificationEntity
         UserId = userId;
         Amount = amount;
 
-        // Add domain event
+        // Adicionar evento de dominio
         AddNotification(new OrderCreatedEvent(Id, UserId));
     }
 }
 
-// In your repository/DbContext
+// No seu repositorio/DbContext
 public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default)
 {
-    // Dispatch domain events before saving
+    // Despachar eventos de dominio antes de salvar
     await _mediator.DispatchNotificationsAsync(this, cancellationToken);
 
     await base.SaveChangesAsync(cancellationToken);
@@ -230,48 +230,48 @@ public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = 
 }
 ```
 
-## Architecture
+## Arquitetura
 
-This mediator implementation follows the **CQRS** (Command Query Responsibility Segregation) pattern:
+Esta implementacao do mediator segue o padrao **CQRS** (Command Query Responsibility Segregation):
 
-- **Commands**: Mutations that change state (Create, Update, Delete)
-- **Queries**: Read-only operations that return data
-- **Notifications**: Events that can be handled by multiple handlers
+- **Commands**: Mutacoes que alteram estado (Criar, Atualizar, Deletar)
+- **Queries**: Operacoes somente leitura que retornam dados
+- **Notifications**: Eventos que podem ser tratados por multiplos handlers
 
-## Why Use This Mediator?
+## Por que usar este Mediator?
 
-1. **Decoupling**: Controllers don't need to know about specific handler implementations
-2. **Testability**: Easy to test handlers in isolation
-3. **Single Responsibility**: Each handler has one job
-4. **Open/Closed Principle**: Add new handlers without modifying existing code
-5. **Domain Events**: First-class support for domain-driven design patterns
-6. **Pipeline Behaviors**: Add cross-cutting concerns without polluting business logic
+1. **Desacoplamento**: Controllers nao precisam conhecer implementacoes especificas de handlers
+2. **Testabilidade**: Facilidade para testar handlers isoladamente
+3. **Responsabilidade Unica**: Cada handler tem uma unica responsabilidade
+4. **Principio Aberto/Fechado**: Adicione novos handlers sem modificar codigo existente
+5. **Eventos de Dominio**: Suporte nativo para padroes de Domain-Driven Design
+6. **Pipeline Behaviors**: Adicione preocupacoes transversais sem poluir a logica de negocio
 
 ## Performance
 
-- Zero allocations for notification dispatch
-- Minimal reflection overhead (cached delegates)
-- Optimized for high-throughput scenarios
-- Supports concurrent notification handling
+- Zero alocacoes para despacho de notifications
+- Overhead minimo de reflection (delegates cacheados)
+- Otimizado para cenarios de alta vazao
+- Suporte a tratamento concorrente de notifications
 
-## Dependencies
+## Dependencias
 
 - `Microsoft.Extensions.DependencyInjection` (10.0.2+)
-- `Scrutor` (7.0.0+) - For assembly scanning
+- `Scrutor` (7.0.0+) - Para varredura de assemblies
 
-## Contributing
+## Contribuicao
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contribuicoes sao bem-vindas! Sinta-se livre para enviar um Pull Request.
 
-## License
+## Licenca
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Este projeto esta licenciado sob a Licenca MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## Support
+## Suporte
 
-- **GitHub Issues**: [Report bugs or request features](https://github.com/fiap-cloud-gaming/Mediator/issues)
-- **Discussions**: [Ask questions or share ideas](https://github.com/fiap-cloud-gaming/Mediator/discussions)
+- **GitHub Issues**: [Reportar bugs ou solicitar funcionalidades](https://github.com/FIAP-Cloud-Gaming/Mediator/issues)
+- **Discussions**: [Fazer perguntas ou compartilhar ideias](https://github.com/FIAP-Cloud-Gaming/Mediator/discussions)
 
 ---
 
-**Made with ❤️ by FIAP Cloud Gaming Team**
+**Feito pelo time FIAP Cloud Gaming**
