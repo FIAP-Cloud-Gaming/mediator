@@ -1,0 +1,65 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '*.md'
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  CONFIGURATION: Release
+  SOLUTION_NAME: Mediator.slnx
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: setup .net
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: cache nuget packages
+      uses: actions/cache@v5
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
+        restore-keys: |
+          nuget-${{ runner.os }}-
+
+    - name: authenticate github packages
+      run: |
+        dotnet nuget remove source github-fcg --configfile nuget.config || true
+        dotnet nuget add source "https://nuget.pkg.github.com/FIAP-Cloud-Gaming/index.json" \
+          --name github-fcg \
+          --username FIAP-Cloud-Gaming \
+          --password ${{ secrets.GITHUB_TOKEN }} \
+          --store-password-in-clear-text \
+          --configfile nuget.config
+
+    - name: restore dependencies
+      run: dotnet restore ${{ ENV.SOLUTION_NAME }}
+
+    - name: pack
+      run: dotnet pack ${{ ENV.SOLUTION_NAME }} --configuration ${{ env.CONFIGURATION }} --no-restore --output ./artifacts
+
+    - name: upload artifacts
+      uses: actions/upload-artifact@v6
+      with:
+        name: nuget-packages
+        path: ./artifacts/*.nupkg
+
+    - name: publish
+      run: |
+        dotnet nuget push ./artifacts/*.nupkg \
+          --source https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json \
+          --api-key ${{ secrets.GITHUB_TOKEN }} \
+          --skip-duplicate
