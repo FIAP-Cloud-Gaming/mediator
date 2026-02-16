@@ -15,6 +15,9 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
 
     steps:
     - name: checkout code
@@ -34,16 +37,6 @@ jobs:
         key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj', '**/Directory.Packages.props') }}
         restore-keys: |
           nuget-${{ runner.os }}-
-
-    - name: authenticate github packages
-      run: |
-        dotnet nuget remove source github-fcg --configfile nuget.config || true
-        dotnet nuget add source "https://nuget.pkg.github.com/FIAP-Cloud-Gaming/index.json" \
-          --name github-fcg \
-          --username FIAP-Cloud-Gaming \
-          --password ${{ secrets.GITHUB_TOKEN }} \
-          --store-password-in-clear-text \
-          --configfile nuget.config
 
     - name: restore dependencies
       run: dotnet restore ${{ ENV.SOLUTION_NAME }}
